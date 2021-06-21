@@ -11,7 +11,8 @@ detection.
 
 Right now the package contains one step function: `step_isofor` (short
 for isolation forest). This is an implementation of the isolation forest
-algorithm from the R `{solitude}` package.
+algorithm from the R `{solitude}` package. The plan is to also add a
+matrix profile step function from the `{tsmp}` package.
 
 This is a work in progress (and mostly a pet project at this point), but
 if you have a chance to try it out, please let me know how it goes.
