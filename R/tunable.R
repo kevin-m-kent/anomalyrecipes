@@ -24,7 +24,7 @@ sample_size <- function(range = c(unknown(), unknown()), trans = NULL) {
     range = range,
     inclusive = c(TRUE, TRUE),
     trans = trans,
-    label = c(sub_classes = "Isolation Forest Tree Depth"),
+    label = c(sub_classes = "Isolation Forest Sample Size"),
     finalize = NULL
   )
 }

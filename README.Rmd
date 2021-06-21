@@ -9,7 +9,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  message = FALSE,
+  warning = FALSE
 )
 ```
 
@@ -32,27 +34,59 @@ You can install the development version of anomalyrecipes from github:
 devtools::install_github("kevin-m-kent/anomalyrecipes")
 ```
 
-## Example
+## Getting Started
 
-This is a basic example which shows you how to solve a common problem:
+Let's start with a case where we are building some pre-processing steps for a linear model. We would like to add a feature that captures how anomalous observations are. 
 
-```{r example}
+```{r step_isofor_example, message=FALSE, warning=FALSE}
 library(anomalyrecipes)
-## basic example code
+library(tidymodels)
+library(tidyverse)
+library(solitude)
+
+tidymodels_prefer()
+
+splits <- initial_split(mtcars)
+train <- training(splits)
+test <- testing(splits)
+resamples <- bootstraps(train, times = 5)
+
+rec_obj <- 
+  recipe(mpg ~ ., data = mtcars) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_isofor(all_predictors(), sample_size = 10, max_depth = 5)
+
+baked_data <- rec_obj %>%
+  prep() %>%
+  bake(train)
+
+baked_data %>%
+  head()
+
 ```
+You can also tune the isolation forest pre-processing step:
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+```{r tuning,  message=FALSE, warning=FALSE}
+lm_mod <- linear_reg() %>%
+  set_engine("lm") 
 
-```{r cars}
-summary(cars)
+rec_obj_tuned <- 
+  recipe(mpg ~ ., data = mtcars) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_isofor(all_predictors(), sample_size = tune(), max_depth = tune())
+
+wf_linear <- workflow() %>%
+  add_recipe(rec_obj_tuned) %>%
+  add_model(lm_mod)
+
+iso_param <- wf_linear %>%
+  parameters() %>%
+  update(sample_size = anomalyrecipes::sample_size(c(1, 24)))
+
+tuned_results <- wf_linear %>%
+  tune_grid(resamples = resamples, param_info = iso_param)
+
+tuned_results %>%
+  autoplot()
+
 ```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/master/examples>.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.

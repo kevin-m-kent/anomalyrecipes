@@ -107,7 +107,7 @@ prep.step_isofor <- function(x, training, info = NULL, ...) {
                                  nproc = x$options$nproc, replace = x$options$replace, seed = x$options$seed,
                                  respect_unordered_factors = x$options$respect_unordered_factors)
 
-  iso_mod$fit(training[, col_names])
+  suppressMessages(iso_mod$fit(training[, col_names]))
 
   step_isofor_new(
     terms = x$terms,
@@ -128,7 +128,7 @@ bake.step_isofor <- function(object, new_data, ...) {
 
   iso_mod <- object$iso_mod
 
-  new_data$if_score <- iso_mod$predict(new_data)$anomaly_score
+  new_data$if_score <- suppressMessages(iso_mod$predict(new_data)$anomaly_score)
 
   ## Always convert to tibbles on the way out
   tibble::as_tibble(new_data)
